@@ -1,0 +1,186 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-end
+  namespace: dev
+  labels:
+    app: front-end
+spec:
+  selector:
+    matchLabels:
+      app: front-end
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: front-end
+    spec:
+      containers:
+      - name: front-end
+        image: gustavoapolinario/ecommerce-lab-front-end
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        env:
+        - name: NODE_ENV
+          value: "production"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: nginx-tmp
+          mountPath: /tmp/
+          subPath: nginx.pid
+      volumes:
+      - name: nginx-tmp
+        emptyDir: {}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+
+
+# ---
+# # Azure Load Balancer
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: front-end-service
+#   namespace: dev
+#   labels:
+#     app: front-end
+#   annotations:
+#     service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+#     service.beta.kubernetes.io/azure-load-balancer-ssl-cert: "frontend-tls"
+#     service.beta.kubernetes.io/azure-load-balancer-ssl-ports: "443"
+#     service.beta.kubernetes.io/azure-load-balancer-health-probe-interval: "10"
+#     service.beta.kubernetes.io/azure-load-balancer-health-probe-num-of-probe: "5"
+#     service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/"
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: front-end
+#   ports:
+#     - name: httpserver
+#       protocol: TCP
+#       port: 80
+#       targetPort: 8080
+#     - name: httpsserver
+#       protocol: TCP
+#       appProtocol: HTTPS
+#       port: 443
+#       targetPort: 8080
+
+
+---
+# App Gateway
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-end-service
+  namespace: dev
+spec:
+  type: NodePort
+  selector:
+    app: front-end
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: frontend-ingress
+#   namespace: dev
+#   labels:
+#     app: front-end
+#   annotations:
+#     kubernetes.io/ingress.class: azure/application-gateway
+#     appgw.ingress.kubernetes.io/ssl-redirect: "true"
+#     appgw.ingress.kubernetes.io/appgw-ssl-certificate: "your-ssl-cert-name"
+# spec:
+#   tls:
+#   - hosts:
+#     - your-domain.com
+#     secretName: frontend-tls
+#   rules:
+#   - http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: front-end-service
+#             port:
+#               number: 80
+
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: front-end-hpa
+  namespace: dev
+  labels:
+    app: front-end
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: front-end
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: front-end-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: front-end
