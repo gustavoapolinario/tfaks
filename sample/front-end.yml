@@ -96,7 +96,7 @@ spec:
 #     app: front-end
 #   annotations:
 #     service.beta.kubernetes.io/azure-load-balancer-internal: "false"
-#     service.beta.kubernetes.io/azure-load-balancer-ssl-cert: "frontend-tls"
+#     service.beta.kubernetes.io/azure-load-balancer-ssl-cert: "ssl-certificate"
 #     service.beta.kubernetes.io/azure-load-balancer-ssl-ports: "443"
 #     service.beta.kubernetes.io/azure-load-balancer-health-probe-interval: "10"
 #     service.beta.kubernetes.io/azure-load-balancer-health-probe-num-of-probe: "5"
@@ -133,7 +133,34 @@ spec:
       protocol: TCP
       port: 80
       targetPort: 8080
-# ---
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  namespace: dev
+  labels:
+    app: front-end
+  annotations:
+    # kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "ssl-certificate"
+    appgw.ingress.kubernetes.io/backend-protocol: "http"
+    appgw.ingress.kubernetes.io/health-probe-path: "/"
+spec:
+  ingressClassName: azure-application-gateway
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: front-end-service
+            port:
+              number: 80
+
+
 # apiVersion: networking.k8s.io/v1
 # kind: Ingress
 # metadata:
@@ -144,14 +171,18 @@ spec:
 #   annotations:
 #     kubernetes.io/ingress.class: azure/application-gateway
 #     appgw.ingress.kubernetes.io/ssl-redirect: "true"
-#     appgw.ingress.kubernetes.io/appgw-ssl-certificate: "your-ssl-cert-name"
+#     appgw.ingress.kubernetes.io/appgw-ssl-certificate: "ssl-certificate"
+#     appgw.ingress.kubernetes.io/backend-protocol: "http"
+#     appgw.ingress.kubernetes.io/health-probe-path: "/"
 # spec:
 #   tls:
 #   - hosts:
 #     - your-domain.com
-#     secretName: frontend-tls
+#     - www.your-domain.com
+#     # secretName: frontend-tls
 #   rules:
-#   - http:
+#   - host: your-domain.com
+#     http:
 #       paths:
 #       - path: /
 #         pathType: Prefix
@@ -160,7 +191,16 @@ spec:
 #             name: front-end-service
 #             port:
 #               number: 80
-
+#   - host: www.your-domain.com
+#     http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: front-end-service
+#             port:
+#               number: 80
 
 ---
 apiVersion: autoscaling/v2

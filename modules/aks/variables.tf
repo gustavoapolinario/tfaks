@@ -30,6 +30,11 @@ variable "resource_group_name" {
   type        = string
 }
 
+variable "resource_group_id" {
+  description = "The ID of an existing resource group to deploy into."
+  type        = string
+}
+
 ###########################################
 ############# AKS Management ##############
 ###########################################
@@ -96,6 +101,25 @@ variable "aks_service_cidr" {
 #   type        = string
 #   default     = "192.168.1.10"
 # }
+
+###########################################
+############# LB Network #################
+###########################################
+
+variable "lb_subnet_id" {
+  description = "The ID of the existing Subnet within the VNet for the Load Balancers (ALB, AAG)."
+  type        = string
+}
+
+variable "akv_certificate_id" {
+  description = "The ID of the Key Vault containing the TLS certificate for the Application Gateway Ingress Controller (AGIC)."
+  type        = string
+}
+
+variable "akv_certificate_secret_id" {
+  description = "The ID of the Key Vault Secret containing the TLS certificate for the Application Gateway Ingress Controller (AGIC)."
+  type        = string
+}
 
 ###########################################
 ############# AKS Node Pool ###############

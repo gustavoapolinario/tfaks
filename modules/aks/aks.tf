@@ -85,6 +85,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
     secret_rotation_interval = "10m" # TODO: create var
   }
 
+  ingress_application_gateway {
+    gateway_id = azurerm_application_gateway.agw.id
+  }
+
   # -- Local Admin Account (Keep disabled for production) --
   # local_account_disabled = true # Force use of AAD accounts
 

@@ -23,12 +23,12 @@ get_tf_output() {
 # Get values from Terraform
 echo "Getting Terraform outputs..."
 # export USER_ASSIGNED_IDENTITY_ID=$(get_tf_output "aks_outputs.value.principal_id")
-export KEY_VAULT_ECCOMERCELAB_NAME=$(get_tf_output "key_vault_ecconmercelab_name.value")
-echo "KEY_VAULT_ECCOMERCELAB_NAME: $KEY_VAULT_ECCOMERCELAB_NAME"
+export KEY_VAULT_NAME=$(get_tf_output "key_vault_ssl_name.value")
+echo "KEY_VAULT_NAME: $KEY_VAULT_NAME"
 export TENANT_ID=$(get_tf_output "tenant_id.value")
 echo "TENANT_ID: $TENANT_ID"
-export SECRET_EXAMPLE_NAME=$(get_tf_output "key_vault_secret_example_name.value")
-echo "SECRET_EXAMPLE_NAME: $SECRET_EXAMPLE_NAME"
+export CERTIFICATE_EXAMPLE_NAME=$(get_tf_output "key_vault_ssl_certificate_name.value")
+echo "CERTIFICATE_EXAMPLE_NAME: $CERTIFICATE_EXAMPLE_NAME"
 
 export USER_ASSIGNED_IDENTITY_ID=$( \
     az aks connection show \
@@ -43,7 +43,7 @@ echo "USER_ASSIGNED_IDENTITY_ID: $USER_ASSIGNED_IDENTITY_ID"
 
 # Verify values
 # 
-if [[ -z "$USER_ASSIGNED_IDENTITY_ID" || -z "$KEY_VAULT_ECCOMERCELAB_NAME" || -z "$TENANT_ID" || -z "$SECRET_EXAMPLE_NAME" ]]; then
+if [[ -z "$USER_ASSIGNED_IDENTITY_ID" || -z "$KEY_VAULT_NAME" || -z "$TENANT_ID" || -z "$CERTIFICATE_EXAMPLE_NAME" ]]; then
     echo "Error: Missing required Terraform outputs"
     exit 1
 fi
@@ -58,9 +58,9 @@ fi
 
 echo "Processing template with envsubst..."
 echo "---"
-envsubst < $SCRIPT_DIR/secret-provider-class-azure-kv-example.yml | cat
+envsubst < $SCRIPT_DIR/secret-provider-class-ssl-certificate.yml | cat
 echo "---"
-envsubst < $SCRIPT_DIR/secret-provider-class-azure-kv-example.yml | kubectl apply -f -
+envsubst < $SCRIPT_DIR/secret-provider-class-ssl-certificate.yml | kubectl apply -f -
 
 echo "SecretProviderClass applied successfully!"
 kubectl get secretproviderclass -n dev

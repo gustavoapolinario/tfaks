@@ -92,6 +92,7 @@ To run secrets with Azure Key Vault (akv), install the SecretProviderClass to in
 ```bash
 kubectl create namespace dev
 ./kubernetes-objects/secret-provider-class-azure-kv-example.sh
+./kubernetes-objects/secret-provider-class-ssl-certificate.sh
 ```
 
 ### Run the sample

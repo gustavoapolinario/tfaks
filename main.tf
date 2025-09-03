@@ -15,7 +15,7 @@ data "azuread_group" "aks_admin_group" {
   display_name = var.aks_admin_group_name
 }
 
-module "vpc" {
+module "vpc" { # TODO: change module name
   source              = "./modules/vpc"
   location            = var.location
   project_name        = local.project_name
@@ -39,6 +39,7 @@ module "aks" {
   environment         = var.environment
   tags                = local.tags
   resource_group_name = azurerm_resource_group.aks_rg.name
+  resource_group_id   = azurerm_resource_group.aks_rg.id
 
   kubernetes_version             = var.kubernetes_version
   cluster_endpoint_public_access = var.cluster_endpoint_public_access
@@ -51,6 +52,10 @@ module "aks" {
 
   vnet_id                        = module.vpc.vnet_id
   vnet_subnet_id                 = module.vpc.private_subnet_id
+  lb_subnet_id                   = module.vpc.lb_subnet_id
+  akv_certificate_secret_id      = azurerm_key_vault_certificate.self_signed.secret_id
+  akv_certificate_id = azurerm_key_vault.ssl_cert.id
+
   default_node_pool_vm_size      = var.default_node_pool_vm_size
   default_node_pool_os_disk_size = var.default_node_pool_os_disk_size
   default_node_pool_min_count    = var.default_node_pool_min_count
@@ -61,6 +66,7 @@ module "aks" {
 
   akv_connections = {
     "aks_ecconmercelab" = azurerm_key_vault.ecconmercelab.id
+    "aks_ssl_cert"     = azurerm_key_vault.ssl_cert.id
   }
 
   depends_on = [

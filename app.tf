@@ -28,6 +28,10 @@ resource "azurerm_key_vault_access_policy" "terraform_user" {
   secret_permissions = [
     "Get", "List", "Set", "Delete", "Purge"
   ]
+
+  key_permissions = [
+    "Get", "List", "Update", "Create", "Delete",  "Purge"
+  ]
 }
 resource "azurerm_key_vault_access_policy" "aks_system_identity" {
   key_vault_id = azurerm_key_vault.ecconmercelab.id
@@ -36,6 +40,10 @@ resource "azurerm_key_vault_access_policy" "aks_system_identity" {
   object_id = module.aks.principal_id
 
   secret_permissions = [
+    "Get", "List"
+  ]
+
+  key_permissions = [
     "Get", "List"
   ]
 
@@ -52,109 +60,127 @@ resource "azurerm_key_vault_secret" "example" {
 
 
 
-# resource "azurerm_key_vault" "ssl_cert" {
-#   name                        = "${local.project_name}-${var.environment}-front-end-ssl"
-#   location                    = azurerm_resource_group.aks_rg.location
-#   resource_group_name         = azurerm_resource_group.aks_rg.name
-#   enabled_for_disk_encryption = true
-#   tenant_id                   = data.azurerm_client_config.current.tenant_id
-#   soft_delete_retention_days  = 7
-#   purge_protection_enabled    = false
+resource "azurerm_key_vault" "ssl_cert" {
+  name                        = "${local.project_name}-${var.environment}-eclabssl-${random_integer.keyvault_suffix.result}"
+  location                    = azurerm_resource_group.aks_rg.location
+  resource_group_name         = azurerm_resource_group.aks_rg.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
 
-#   sku_name = "standard"
+  sku_name = "standard"
+}
 
-#   access_policy {
-#     tenant_id = data.azurerm_client_config.current.tenant_id
-#     object_id = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "aks_system_identity_akv_ssl" {
+  key_vault_id = azurerm_key_vault.ssl_cert.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  # object_id is the principal ID of the AKS cluster's system-assigned identity
+  object_id = module.aks.principal_id
 
-#     certificate_permissions = [
-#       "Create",
-#       "Delete",
-#       "DeleteIssuers",
-#       "Get",
-#       "GetIssuers",
-#       "Import",
-#       "List",
-#       "ListIssuers",
-#       "ManageContacts",
-#       "ManageIssuers",
-#       "SetIssuers",
-#       "Update"
-#     ]
+  secret_permissions = [
+    "Get", "List"
+  ]
 
-#     key_permissions = [
-#       "Get",
-#     ]
+  key_permissions = [
+    "Get", "List"
+  ]
 
-#     secret_permissions = [
-#       "Get",
-#     ]
-#   }
-# }
+  certificate_permissions = [
+    "Create",
+    "Delete",
+    "DeleteIssuers",
+    "Get",
+    "GetIssuers",
+    "Import",
+    "List",
+    "ListIssuers",
+    "ManageContacts",
+    "ManageIssuers",
+    "SetIssuers",
+    "Update"
+  ]
 
-# # # Import an existing SSL certificate (if you have .pfx file)
-# # resource "azurerm_key_vault_certificate" "ssl_cert" {
-# #   name         = var.certificate_name
-# #   key_vault_id = azurerm_key_vault.ssl_cert.id
+  depends_on = [module.aks]
+}
 
-# #   certificate {
-# #     contents = filebase64("path/to/your/certificate.pfx")
-# #     password = "your-pfx-password" # Optional if certificate has no password
-# #   }
+resource "azurerm_key_vault_access_policy" "terraform_user_akv_ssl" {
+  key_vault_id = azurerm_key_vault.ssl_cert.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-# #   lifecycle {
-# #     ignore_changes = [certificate]
-# #   }
-# # }
+  certificate_permissions = [
+    "Create",
+    "Delete",
+    "DeleteIssuers",
+    "Get",
+    "GetIssuers",
+    "Import",
+    "List",
+    "ListIssuers",
+    "ManageContacts",
+    "ManageIssuers",
+    "SetIssuers",
+    "Update"
+  ]
 
-# # Alternative: Create a self-signed certificate (for testing)
-# resource "azurerm_key_vault_certificate" "self_signed" {
-#   name         = "${var.certificate_name}-selfsigned"
-#   key_vault_id = azurerm_key_vault.ssl_cert.id
+  key_permissions = [
+    "Get", "List", "Update", "Create", "Delete",  "Purge"
+  ]
+}
 
-#   certificate_policy {
-#     issuer_parameters {
-#       name = "Self"
-#     }
+# Alternative: Create a self-signed certificate (for testing)
+resource "azurerm_key_vault_certificate" "self_signed" {
+  name         = "${var.certificate_name}-selfsigned"
+  key_vault_id = azurerm_key_vault.ssl_cert.id
 
-#     key_properties {
-#       exportable = true
-#       key_size   = 2048
-#       key_type   = "RSA"
-#       reuse_key  = true
-#     }
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
 
-#     lifetime_action {
-#       action {
-#         action_type = "AutoRenew"
-#       }
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
 
-#       trigger {
-#         days_before_expiry = 30
-#       }
-#     }
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
 
-#     secret_properties {
-#       content_type = "application/x-pkcs12"
-#     }
+      trigger {
+        days_before_expiry = 30
+      }
+    }
 
-#     x509_certificate_properties {
-#       extended_key_usage = ["1.3.6.1.5.5.7.3.1"] # Server Authentication
-#       key_usage = [
-#         "cRLSign",
-#         "dataEncipherment",
-#         "digitalSignature",
-#         "keyAgreement",
-#         "keyCertSign",
-#         "keyEncipherment",
-#       ]
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
 
-#       subject_alternative_names {
-#         dns_names = [var.domain_name, "www.${var.domain_name}"]
-#       }
+    x509_certificate_properties {
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"] # Server Authentication
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
 
-#       subject            = "CN=${var.domain_name}"
-#       validity_in_months = 12
-#     }
-#   }
-# }
+      subject_alternative_names {
+        dns_names = [var.domain_name, "www.${var.domain_name}"]
+      }
+
+      subject            = "CN=${var.domain_name}"
+      validity_in_months = 12
+    }
+  }
+
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform_user_akv_ssl,
+  ]
+}
