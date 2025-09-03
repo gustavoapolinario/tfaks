@@ -123,13 +123,6 @@ variable "aks_overlay_pod_cidr" {
 ############# AKS Node Pool ###############
 ###########################################
 
-# System Node Pool Configuration
-variable "default_node_pool_node_count" {
-  description = "The initial number of nodes in the default node pool."
-  type        = number
-  default     = 3
-}
-
 variable "default_node_pool_vm_size" {
   description = "The VM size for nodes in the default node pool."
   type        = string
@@ -139,12 +132,6 @@ variable "default_node_pool_os_disk_size" {
   description = "The size of the OS disk for nodes in the default node pool (in GB)."
   type        = number
   default     = 128
-}
-
-variable "default_node_pool_enable_auto_scaling" {
-  description = "Whether to enable auto-scaling for the default node pool."
-  type        = bool
-  default     = true
 }
 
 variable "default_node_pool_min_count" {
@@ -157,12 +144,6 @@ variable "default_node_pool_max_count" {
   description = "The maximum number of nodes for the default node pool auto-scaler."
   type        = number
   default     = 10
-}
-
-variable "default_node_pool_labels" {
-  description = "Labels to apply to nodes in the default node pool."
-  type        = map(string)
-  default     = {}
 }
 
 ###########################################

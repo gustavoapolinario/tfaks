@@ -30,7 +30,7 @@ spec:
         image: gustavoapolinario/ecommerce-lab-front-end
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           protocol: TCP
         resources:
           requests:
@@ -42,7 +42,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /
-            port: 80
+            port: 8080
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 10
@@ -51,6 +51,11 @@ spec:
         env:
         - name: NODE_ENV
           value: "production"
+        - name: EXAMPLE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: demo-kv-secret  # secretName on SecretProviderClass
+              key: EXAMPLE_SECRET
         securityContext:
           runAsNonRoot: true
           runAsUser: 1001
@@ -58,13 +63,24 @@ spec:
           readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
         volumeMounts:
         - name: nginx-tmp
           mountPath: /tmp/
           subPath: nginx.pid
+        - name: secrets-store
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
       volumes:
       - name: nginx-tmp
         emptyDir: {}
+      - name: secrets-store
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-kv-example"
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
 

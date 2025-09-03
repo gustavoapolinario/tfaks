@@ -31,7 +31,11 @@ resource "azurerm_subnet" "private_subnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet_private_cidr]
 
-  service_endpoints = ["Microsoft.ContainerRegistry"]
+  service_endpoints = [
+    "Microsoft.KeyVault",
+    "Microsoft.Storage",
+    "Microsoft.ContainerRegistry"
+  ]
 
   # delegation {
   #   name = "aks-delegation-private-subnet"
@@ -117,13 +121,19 @@ resource "azurerm_subnet_network_security_group_association" "private_subnet" {
 }
 
 resource "azurerm_subnet" "private_isolated_subnet" {
-  count = var.create_private_isolated_subnet ? 1 : 0
+  count                = var.create_private_isolated_subnet ? 1 : 0
   name                 = "${var.project_name}-${var.environment}-private_isolated-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet_private_isolated_cidr]
 
-  private_endpoint_network_policies = "Enabled"
+  service_endpoints = [
+    "Microsoft.KeyVault",
+    "Microsoft.Storage",
+    "Microsoft.ContainerRegistry"
+  ]
+
+  private_endpoint_network_policies             = "Enabled"
   private_link_service_network_policies_enabled = false
 }
 resource "azurerm_network_security_group" "isolated_nsg" {

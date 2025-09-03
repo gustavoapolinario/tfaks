@@ -101,13 +101,6 @@ variable "aks_service_cidr" {
 ############# AKS Node Pool ###############
 ###########################################
 
-# System Node Pool Configuration
-variable "default_node_pool_node_count" {
-  description = "The initial number of nodes in the default node pool."
-  type        = number
-  default     = 3
-}
-
 variable "default_node_pool_vm_size" {
   description = "The VM size for nodes in the default node pool."
   type        = string
@@ -138,12 +131,6 @@ variable "default_node_pool_max_count" {
   default     = 10
 }
 
-variable "default_node_pool_labels" {
-  description = "Labels to apply to nodes in the default node pool."
-  type        = map(string)
-  default     = {}
-}
-
 ###########################################
 ############# AKS Monitoring ##############
 ###########################################
@@ -166,4 +153,13 @@ variable "log_retention_in_days" {
   default     = 30
 }
 
+###########################################
+########## Service Connections#############
+###########################################
+
+variable "akv_connections" {
+  description = "Map of Azure Key Vault names to their resource IDs for Service Connector connections."
+  type        = map(string)
+  default     = {}
+}
 
