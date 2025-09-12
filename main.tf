@@ -15,8 +15,8 @@ data "azuread_group" "aks_admin_group" {
   display_name = var.aks_admin_group_name
 }
 
-module "vpc" { # TODO: change module name
-  source              = "./modules/vpc"
+module "vnet" {
+  source              = "./modules/vnet"
   location            = var.location
   project_name        = local.project_name
   environment         = var.environment
@@ -50,11 +50,9 @@ module "aks" {
   aks_overlay_pod_cidr = var.aks_overlay_pod_cidr
   # aks_service_cidr               = var.aks_service_cidr
 
-  vnet_id                        = module.vpc.vnet_id
-  vnet_subnet_id                 = module.vpc.private_subnet_id
-  lb_subnet_id                   = module.vpc.lb_subnet_id
-  akv_certificate_secret_id      = azurerm_key_vault_certificate.self_signed.secret_id
-  akv_certificate_id = azurerm_key_vault.ssl_cert.id
+  vnet_id                        = module.vnet.vnet_id
+  vnet_subnet_id                 = module.vnet.private_subnet_id
+  lb_subnet_id                   = module.vnet.lb_subnet_id
 
   default_node_pool_vm_size      = var.default_node_pool_vm_size
   default_node_pool_os_disk_size = var.default_node_pool_os_disk_size
@@ -66,13 +64,10 @@ module "aks" {
 
   akv_connections = {
     "aks_ecconmercelab" = azurerm_key_vault.ecconmercelab.id
-    "aks_ssl_cert"     = azurerm_key_vault.ssl_cert.id
   }
 
   depends_on = [
     azurerm_key_vault.ecconmercelab,
   ]
 }
-
-
 

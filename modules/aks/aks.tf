@@ -15,7 +15,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   kubernetes_version        = var.kubernetes_version
   node_resource_group       = "rg-node-${var.resource_group_name}"
   tags                      = var.tags
-  private_cluster_enabled   = false # TODO: fix
+  private_cluster_enabled   = false # TODO: fix private_cluster_enabled
   oidc_issuer_enabled       = true
   workload_identity_enabled = true
 
@@ -37,8 +37,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   default_node_pool {
-    name                        = "system" # TODO: default-np
-    temporary_name_for_rotation = "systemupdtng"
+    name                        = "defaultnp"
+    temporary_name_for_rotation = "defaultnpupd"
     vm_size                     = var.default_node_pool_vm_size
     os_disk_size_gb             = var.default_node_pool_os_disk_size
     vnet_subnet_id              = var.vnet_subnet_id
@@ -50,7 +50,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     max_pods               = 250
     zones                  = [1, 2, 3]
     node_labels            = {}
-    tags                   = merge(var.tags, { "pool" = "system" }) # TODO: default-np
+    tags                   = merge(var.tags, { "pool" = "default-np" })
     node_public_ip_enabled = true                                   # TODO: create var
 
     upgrade_settings {
@@ -85,9 +85,9 @@ resource "azurerm_kubernetes_cluster" "aks" {
     secret_rotation_interval = "10m" # TODO: create var
   }
 
-  ingress_application_gateway {
-    gateway_id = azurerm_application_gateway.agw.id
-  }
+  # ingress_application_gateway {
+  #   gateway_id = azurerm_application_gateway.agw.id
+  # }
 
   # -- Local Admin Account (Keep disabled for production) --
   # local_account_disabled = true # Force use of AAD accounts
@@ -119,7 +119,7 @@ resource "azurerm_log_analytics_workspace" "logs" {
 }
 
 # Grant the AKS SystemAssigned Identity necessary permissions on the VNet/Subnet.
-resource "azurerm_role_assignment" "network_contributor" {
+resource "azurerm_role_assignment" "network_contributor" { # TODO: change name to aks_network_contributor
   principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
   role_definition_name = "Network Contributor"
   scope                = var.vnet_id

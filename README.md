@@ -10,6 +10,7 @@
 - Run sudo az aks install-cli command to install a compatible kubelogin
 - Create the azure account if don't have yet.
 - Create a group on Azure Entra-Id to have access to AKS.
+- add alb extension az extension add --name alb
 
 ### Provider
 
@@ -91,8 +92,9 @@ To run secrets with Azure Key Vault (akv), install the SecretProviderClass to in
 
 ```bash
 kubectl create namespace dev
-./kubernetes-objects/secret-provider-class-azure-kv-example.sh
-./kubernetes-objects/secret-provider-class-ssl-certificate.sh
+./scripts/secret-provider-class-azure-kv-example.sh
+./scripts/create-ssl-certificate.sh
+./scripts/app-gateway-for-containers.sh
 ```
 
 ### Run the sample
@@ -101,16 +103,4 @@ To verify if everything is working, run the sample
 
 ```bash
 kubectl apply -f sample/front-end.yml
-```
-
-## Notes
-
-### Configure Azure Proveider Registration
-
-The Azure Proveider Registration will be used to connect AKS with others Azure Services, like AKS. \
-It is a script on terraform because need run only 1 time on account, don't need be on IaC lifecycle.
-
-```bash
-az provider register -n Microsoft.ServiceLinker
-az provider register -n Microsoft.KubernetesConfiguration
 ```

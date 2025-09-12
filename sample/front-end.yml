@@ -1,9 +1,4 @@
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: dev
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,7 +23,7 @@ spec:
       containers:
       - name: front-end
         image: gustavoapolinario/ecommerce-lab-front-end
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -83,42 +78,7 @@ spec:
             secretProviderClass: "azure-kv-example"
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
-
-
-# ---
-# # Azure Load Balancer
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: front-end-service
-#   namespace: dev
-#   labels:
-#     app: front-end
-#   annotations:
-#     service.beta.kubernetes.io/azure-load-balancer-internal: "false"
-#     service.beta.kubernetes.io/azure-load-balancer-ssl-cert: "ssl-certificate"
-#     service.beta.kubernetes.io/azure-load-balancer-ssl-ports: "443"
-#     service.beta.kubernetes.io/azure-load-balancer-health-probe-interval: "10"
-#     service.beta.kubernetes.io/azure-load-balancer-health-probe-num-of-probe: "5"
-#     service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/"
-# spec:
-#   type: LoadBalancer
-#   selector:
-#     app: front-end
-#   ports:
-#     - name: httpserver
-#       protocol: TCP
-#       port: 80
-#       targetPort: 8080
-#     - name: httpsserver
-#       protocol: TCP
-#       appProtocol: HTTPS
-#       port: 443
-#       targetPort: 8080
-
-
 ---
-# App Gateway
 apiVersion: v1
 kind: Service
 metadata:
@@ -134,74 +94,43 @@ spec:
       port: 80
       targetPort: 8080
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+# App Gateway for containers based on Kubernetes Gateway API
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
 metadata:
-  name: frontend-ingress
+  name: gateway-01
   namespace: dev
-  labels:
-    app: front-end
   annotations:
-    # kubernetes.io/ingress.class: azure/application-gateway
-    appgw.ingress.kubernetes.io/ssl-redirect: "true"
-    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "ssl-certificate"
-    appgw.ingress.kubernetes.io/backend-protocol: "http"
-    appgw.ingress.kubernetes.io/health-probe-path: "/"
+    alb.networking.azure.io/alb-namespace: dev
+    alb.networking.azure.io/alb-name: alb-example
 spec:
-  ingressClassName: azure-application-gateway
+  gatewayClassName: azure-alb-external
+  listeners:
+  - name: https-listener
+    port: 443
+    protocol: HTTPS
+    allowedRoutes:
+      namespaces:
+        from: Same
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind : Secret
+        group: ""
+        name: local-tls-cert
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: https-route
+  namespace: dev
+spec:
+  parentRefs:
+  - name: gateway-01
   rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: front-end-service
-            port:
-              number: 80
-
-
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: frontend-ingress
-#   namespace: dev
-#   labels:
-#     app: front-end
-#   annotations:
-#     kubernetes.io/ingress.class: azure/application-gateway
-#     appgw.ingress.kubernetes.io/ssl-redirect: "true"
-#     appgw.ingress.kubernetes.io/appgw-ssl-certificate: "ssl-certificate"
-#     appgw.ingress.kubernetes.io/backend-protocol: "http"
-#     appgw.ingress.kubernetes.io/health-probe-path: "/"
-# spec:
-#   tls:
-#   - hosts:
-#     - your-domain.com
-#     - www.your-domain.com
-#     # secretName: frontend-tls
-#   rules:
-#   - host: your-domain.com
-#     http:
-#       paths:
-#       - path: /
-#         pathType: Prefix
-#         backend:
-#           service:
-#             name: front-end-service
-#             port:
-#               number: 80
-#   - host: www.your-domain.com
-#     http:
-#       paths:
-#       - path: /
-#         pathType: Prefix
-#         backend:
-#           service:
-#             name: front-end-service
-#             port:
-#               number: 80
-
+  - backendRefs:
+    - name: front-end-service
+      port: 80
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

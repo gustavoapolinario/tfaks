@@ -1,0 +1,23 @@
+# ---
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: alb-example-infra
+# ---
+# apiVersion: alb.networking.azure.io/v1
+# kind: ApplicationLoadBalancer
+# metadata:
+#   name: alb-example
+#   namespace: alb-example-infra
+# spec:
+#   associations:
+#   - $ALB_SUBNET_ID
+# ---
+apiVersion: alb.networking.azure.io/v1
+kind: ApplicationLoadBalancer
+metadata:
+  name: alb-example
+  namespace: dev
+spec:
+  associations:
+  - $ALB_SUBNET_ID

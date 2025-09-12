@@ -36,5 +36,6 @@ terraform.rc
 # Sensitive files
 terraform-sensitive.auto.tfvars
 ssh/
+tls/
 
 temp/

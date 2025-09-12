@@ -111,16 +111,6 @@ variable "lb_subnet_id" {
   type        = string
 }
 
-variable "akv_certificate_id" {
-  description = "The ID of the Key Vault containing the TLS certificate for the Application Gateway Ingress Controller (AGIC)."
-  type        = string
-}
-
-variable "akv_certificate_secret_id" {
-  description = "The ID of the Key Vault Secret containing the TLS certificate for the Application Gateway Ingress Controller (AGIC)."
-  type        = string
-}
-
 ###########################################
 ############# AKS Node Pool ###############
 ###########################################

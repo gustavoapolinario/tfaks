@@ -12,20 +12,14 @@ output "aks_keyvault_connection" {
   value       = azurerm_kubernetes_cluster.aks.identity
 }
 
-output "application_gateway_public_ip" {
-  value = azurerm_public_ip.agw_ip.ip_address
+output "agforcontainers_identity_client_id" {
+  value = azurerm_user_assigned_identity.agforcontainers_identity.client_id
 }
 
-output "agic_identity_id" {
-  value = azurerm_kubernetes_cluster.aks.ingress_application_gateway[0].ingress_application_gateway_identity[0].client_id
-}
-output "agic_identity_object_id" {
-  value = azurerm_kubernetes_cluster.aks.ingress_application_gateway[0].ingress_application_gateway_identity[0].object_id
+output "managed_cluster_resource_group_id" {
+  value = data.azurerm_resource_group.mc_rg.id
 }
 
-output "app_gateway_id" {
-  value = azurerm_application_gateway.agw.id
-}
-output "app_gateway_agw_identity_principal_id" {
-  value = azurerm_user_assigned_identity.agw_identity.principal_id
+output "agforcontainers_identity_principal_id" {
+  value = azurerm_user_assigned_identity.agforcontainers_identity.principal_id
 }

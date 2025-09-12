@@ -13,14 +13,17 @@ resource "azurerm_subnet" "lb_subnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet_lb_cidr]
 
-  # delegation {
-  #   name = "aks-delegation-lb-subnet"
-
-  #   service_delegation {
-  #     name    = "Microsoft.ContainerService/managedClusters"
-  #     actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-  #   }
-  # }
+  delegation {
+    name = "Microsoft.ServiceNetworking/trafficControllers"
+    
+    service_delegation {
+      name    = "Microsoft.ServiceNetworking/trafficControllers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/action",
+        "Microsoft.Network/virtualNetworks/subnets/join/action"
+      ]
+    }
+  }
 
   service_endpoints = ["Microsoft.Storage"]
 }
@@ -106,7 +109,7 @@ resource "azurerm_network_security_group" "private_subnet_nsg" {
     name                       = "DenyInternetInbound"
     priority                   = 400
     direction                  = "Inbound"
-    access                     = "Deny"
+    access                     = "Allow" # TODO: tests only
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
@@ -161,7 +164,7 @@ resource "azurerm_network_security_group" "isolated_nsg" {
     name                       = "DenyInternetInbound"
     priority                   = 400
     direction                  = "Inbound"
-    access                     = "Deny"
+    access                     = "Allow" # TODO: tests only
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
@@ -175,7 +178,7 @@ resource "azurerm_network_security_group" "isolated_nsg" {
     name                       = "DenyInternetOutbound"
     priority                   = 400
     direction                  = "Outbound"
-    access                     = "Deny"
+    access                     = "Allow" # TODO: tests only
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
