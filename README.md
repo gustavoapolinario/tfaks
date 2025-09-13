@@ -104,3 +104,37 @@ To verify if everything is working, run the sample
 ```bash
 kubectl apply -f sample/front-end.yml
 ```
+
+### Verify the app
+```bash
+fqdn=$(kubectl get gateway gateway-01 -n test-infra -o jsonpath='{.status.addresses[0].value}')
+curl --insecure https://$fqdn/
+```
+
+## Toubleshooing App Gateway for Controllers
+
+Verify the controllers
+```bash
+kubectl get pods -n azure-alb-system
+kubectl logs -n azure-alb-system -l app=alb-controller --tail=50 -f
+```
+
+Verify the ApplicationLoadBalancer - [https://learn.microsoft.com/en-gb/azure/application-gateway/for-containers/quickstart-create-application-gateway-for-containers-managed-by-alb-controller?tabs=new-subnet-aks-vnet](https://learn.microsoft.com/en-gb/azure/application-gateway/for-containers/quickstart-create-application-gateway-for-containers-managed-by-alb-controller?tabs=new-subnet-aks-vnet)
+```bash
+kubectl get applicationloadbalancer alb-example -n dev
+kubectl describe applicationloadbalancer alb-example -n dev
+```
+
+Verify the gateway - search the listeners - [https://learn.microsoft.com/en-gb/azure/application-gateway/for-containers/how-to-ssl-offloading-gateway-api?tabs=alb-managed](https://learn.microsoft.com/en-gb/azure/application-gateway/for-containers/how-to-ssl-offloading-gateway-api?tabs=alb-managed)
+```bash
+kubectl get gateway gateway-01 -n dev
+kubectl describe gateway gateway-01 -n dev
+```
+
+Verify the httproute - [https://learn.microsoft.com/en-gb/azure/application-gateway/for-containers/how-to-ssl-offloading-gateway-api?tabs=alb-managed](https://learn.microsoft.com/en-gb/azure/application-gateway/for-containers/how-to-ssl-offloading-gateway-api?tabs=alb-managed)
+```bash
+kubectl get httproute https-route -n dev
+kubectl describe httproute https-route -n dev
+```
+
+
