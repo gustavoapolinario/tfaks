@@ -42,17 +42,19 @@ module "aks" {
   resource_group_id   = azurerm_resource_group.aks_rg.id
 
   kubernetes_version             = var.kubernetes_version
+  private_cluster_enabled        = var.private_cluster_enabled
   cluster_endpoint_public_access = var.cluster_endpoint_public_access
   azure_policy_enabled           = var.azure_policy_enabled
   ssh_public_key                 = var.ssh_public_key
   aks_admin_group_ids            = [data.azuread_group.aks_admin_group.object_id]
+  node_public_ip_enabled         = var.node_public_ip_enabled
 
   aks_overlay_pod_cidr = var.aks_overlay_pod_cidr
   # aks_service_cidr               = var.aks_service_cidr
 
-  vnet_id                        = module.vnet.vnet_id
-  vnet_subnet_id                 = module.vnet.private_subnet_id
-  lb_subnet_id                   = module.vnet.lb_subnet_id
+  vnet_id        = module.vnet.vnet_id
+  vnet_subnet_id = module.vnet.private_subnet_id
+  lb_subnet_id   = module.vnet.lb_subnet_id
 
   default_node_pool_vm_size      = var.default_node_pool_vm_size
   default_node_pool_os_disk_size = var.default_node_pool_os_disk_size

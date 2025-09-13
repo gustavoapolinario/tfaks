@@ -49,6 +49,12 @@ variable "cluster_endpoint_public_access" {
   default     = false
 }
 
+variable "private_cluster_enabled" {
+  description = "Whether to enable private cluster mode for the AKS cluster."
+  type        = bool
+  default     = true
+}
+
 # Add-ons
 variable "azure_policy_enabled" {
   description = "Whether to enable Azure Policy add-on for the cluster."
@@ -96,11 +102,17 @@ variable "aks_service_cidr" {
   default     = "192.168.1.0/24"
 }
 
-# variable "aks_dns_service_ip" {
-#   description = "The IP address assigned to the Kubernetes DNS service. It must be within the Kubernetes service address range specified in service_cidr."
-#   type        = string
-#   default     = "192.168.1.10"
-# }
+variable "key_vault_secret_rotation_enabled" {
+  description = "Enable automatic rotation of Key Vault secrets used by the cluster."
+  type        = bool
+  default     = true
+}
+
+variable "key_vault_secret_rotation_interval" {
+  description = "The interval for rotating Key Vault secrets used by the cluster (ex: 10m)"
+  type        = string
+  default     = "10m"
+}
 
 ###########################################
 ############# LB Network #################
@@ -143,6 +155,11 @@ variable "default_node_pool_max_count" {
   description = "The maximum number of nodes for the default node pool auto-scaler."
   type        = number
   default     = 10
+}
+
+variable "node_public_ip_enabled" {
+  description = "Enable public IPs for nodes in the default node pool."
+  type        = bool
 }
 
 ###########################################

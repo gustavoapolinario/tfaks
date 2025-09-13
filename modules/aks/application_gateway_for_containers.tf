@@ -9,7 +9,7 @@ resource "azurerm_user_assigned_identity" "agforcontainers_identity" {
 resource "azurerm_role_assignment" "agforcontainers_identity_reader" {
   scope                = var.resource_group_id
   role_definition_name = "Reader"
-  principal_type = "ServicePrincipal"
+  principal_type       = "ServicePrincipal"
   principal_id         = azurerm_user_assigned_identity.agforcontainers_identity.principal_id
 }
 

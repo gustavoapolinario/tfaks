@@ -4,12 +4,12 @@ resource "random_integer" "keyvault_suffix" {
 }
 
 resource "azurerm_key_vault" "ecconmercelab" {
-  name                = "${local.project_name}-${var.environment}-eclab-kv-${random_integer.keyvault_suffix.result}"
-  location            = azurerm_resource_group.aks_rg.location
-  resource_group_name = azurerm_resource_group.aks_rg.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
-  purge_protection_enabled = true
+  name                       = "${local.project_name}-${var.environment}-eclab-kv-${random_integer.keyvault_suffix.result}"
+  location                   = azurerm_resource_group.aks_rg.location
+  resource_group_name        = azurerm_resource_group.aks_rg.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
   soft_delete_retention_days = 7
 
   # This is important: The default network ACL is often too restrictive for pods.
@@ -18,7 +18,7 @@ resource "azurerm_key_vault" "ecconmercelab" {
     bypass         = "AzureServices" # Allows AKS (an Azure Service) to bypass the firewall
 
     # Add your current public IP to the allowed list
-    ip_rules                   = [
+    ip_rules = [
       "${local.my_public_ipv4}/32",
     ]
     virtual_network_subnet_ids = [module.vnet.private_subnet_id, module.vnet.private_isolated_subnet_id]
@@ -34,7 +34,7 @@ resource "azurerm_key_vault_access_policy" "terraform_user" {
   ]
 
   key_permissions = [
-    "Get", "List", "Update", "Create", "Delete",  "Purge"
+    "Get", "List", "Update", "Create", "Delete", "Purge"
   ]
 }
 resource "azurerm_key_vault_access_policy" "aks_system_identity" {

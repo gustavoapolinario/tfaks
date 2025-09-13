@@ -15,6 +15,7 @@ create_private_isolated_subnet = true
 subnet_private_isolated_cidr   = "10.10.20.0/24"
 
 kubernetes_version             = 1.33
+private_cluster_enabled        = false # TODO: test cluster private
 cluster_endpoint_public_access = true
 aks_overlay_pod_cidr           = "192.168.0.0/16"
 default_node_pool_vm_size      = "Standard_B4als_v2"
@@ -25,3 +26,4 @@ azure_policy_enabled           = true
 create_log_analytics_workspace = false
 aks_admin_group_name           = "admin"
 log_retention_in_days          = 30
+node_public_ip_enabled         = true

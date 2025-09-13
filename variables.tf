@@ -70,6 +70,12 @@ variable "kubernetes_version" {
   type        = string
 }
 
+variable "private_cluster_enabled" {
+  description = "Whether to create a private AKS cluster."
+  type        = bool
+  default     = true
+}
+
 variable "cluster_endpoint_public_access" {
   description = "(Optional) Cluster Endpoint API with public access? Make public or use a VPN or something else"
   type        = bool
@@ -95,6 +101,11 @@ variable "aks_admin_group_name" {
   type        = string
   default     = null
 }
+variable "node_public_ip_enabled" {
+  description = "Enable public IPs for nodes in the default node pool."
+  type        = bool
+  default     = false
+}
 
 
 ###########################################
@@ -105,19 +116,6 @@ variable "aks_overlay_pod_cidr" {
   type        = string
   default     = "192.168.0.0/16"
 }
-
-# Network CIDRs (MUST not overlap with VNet/Subnet CIDRs!)
-# variable "aks_service_cidr" {
-#   description = "The CIDR for Kubernetes services in the cluster."
-#   type        = string
-#   default     = "192.168.1.0/24"
-# }
-
-# variable "aks_dns_service_ip" {
-#   description = "The IP address assigned to the Kubernetes DNS service. It must be within the Kubernetes service address range specified in service_cidr."
-#   type        = string
-#   default     = "192.168.1.10"
-# }
 
 ###########################################
 ############# AKS Node Pool ###############

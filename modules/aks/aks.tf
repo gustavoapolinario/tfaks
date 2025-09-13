@@ -15,7 +15,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   kubernetes_version        = var.kubernetes_version
   node_resource_group       = "rg-node-${var.resource_group_name}"
   tags                      = var.tags
-  private_cluster_enabled   = false # TODO: fix private_cluster_enabled
+  private_cluster_enabled   = var.private_cluster_enabled
   oidc_issuer_enabled       = true
   workload_identity_enabled = true
 
@@ -42,16 +42,15 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vm_size                     = var.default_node_pool_vm_size
     os_disk_size_gb             = var.default_node_pool_os_disk_size
     vnet_subnet_id              = var.vnet_subnet_id
-    # pod_subnet_id        = azurerm_subnet.private_subnet.id
-    type                   = "VirtualMachineScaleSets"
-    auto_scaling_enabled   = true
-    min_count              = var.default_node_pool_enable_auto_scaling ? var.default_node_pool_min_count : null
-    max_count              = var.default_node_pool_enable_auto_scaling ? var.default_node_pool_max_count : null
-    max_pods               = 250
-    zones                  = [1, 2, 3]
-    node_labels            = {}
-    tags                   = merge(var.tags, { "pool" = "default-np" })
-    node_public_ip_enabled = true                                   # TODO: create var
+    type                        = "VirtualMachineScaleSets"
+    auto_scaling_enabled        = true
+    min_count                   = var.default_node_pool_enable_auto_scaling ? var.default_node_pool_min_count : null
+    max_count                   = var.default_node_pool_enable_auto_scaling ? var.default_node_pool_max_count : null
+    max_pods                    = 250
+    zones                       = [1, 2, 3]
+    node_labels                 = {}
+    tags                        = merge(var.tags, { "pool" = "default-np" })
+    node_public_ip_enabled      = var.node_public_ip_enabled
 
     upgrade_settings {
       drain_timeout_in_minutes      = 0
@@ -81,8 +80,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   key_vault_secrets_provider {
-    secret_rotation_enabled  = true  # TODO: create var
-    secret_rotation_interval = "10m" # TODO: create var
+    secret_rotation_enabled  = var.key_vault_secret_rotation_enabled
+    secret_rotation_interval = var.key_vault_secret_rotation_interval
   }
 
   # ingress_application_gateway {
